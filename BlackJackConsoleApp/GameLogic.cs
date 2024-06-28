@@ -63,7 +63,7 @@
                 PlayRound();
                 Console.WriteLine("Do you want to play another round? (yes/no)");
                 var response = Console.ReadLine();
-                if (response?.ToLower() != "yes"&& response?.ToLower() != "y")
+                if (response?.ToLower() != "yes" &&  response?.ToLower() != "y")
                     break;
             }
             PrintStatistics();
