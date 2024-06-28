@@ -167,7 +167,7 @@
             Console.WriteLine($"Total points: {CalculatePoints(playerCards)}\n");
             if (showComputerhand == true)
             {
-                Console.WriteLine("Computer's hand:");
+                Console.WriteLine("\nComputer's hand:");
                 foreach (var card in computerCards)
                 {
                     Console.WriteLine(card);
