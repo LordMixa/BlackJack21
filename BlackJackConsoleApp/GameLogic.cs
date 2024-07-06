@@ -4,53 +4,26 @@
     public class GameLogic
     {
         private CardDeck deck;
-        private List<Card> playerCards;
         private List<Card> computerCards;
         private bool playerTurn;
-        private int playerWins;
-        private int computerWins;
-        private int draws;
-        private string? playerName;
+        private Statistic statistic;
         private bool showComputerhand;
+        private Player player;
 
         public GameLogic()
         {
             showComputerhand = false;
             deck = new CardDeck();
-            playerCards = new List<Card>();
             computerCards = new List<Card>();
-            playerWins = 0;
-            computerWins = 0;
-            draws = 0;
-        }
-        public void Tasks()
-        {
-            Console.WriteLine("Created sorted deck");
-            deck.PrintDeck();
-            Console.WriteLine("______________________________________________________________");
-            Console.WriteLine("Mixed deck");
-            deck.MixCards();
-            deck.PrintDeck();
-            Console.WriteLine("______________________________________________________________");
-            List<int> indexs = deck.FindAcesPositions();
-            foreach (int index in indexs)
-                Console.WriteLine($"Ace in {index} position");
-            Console.WriteLine("______________________________________________________________");
-            deck.SortSpadesStart();
-            Console.WriteLine("Spades on start deck");
-            deck.PrintDeck();
-            Console.WriteLine("______________________________________________________________");
-            Console.WriteLine("Sorted deck");
-            deck.SortDeck();
-            deck.PrintDeck();
-            Console.WriteLine("______________________________________________________________\n\n");
+            statistic = new Statistic();
         }
         public void Start()
         {
             Console.WriteLine("Enter your name");
-            playerName = Console.ReadLine();
-            if (playerName == null || playerName == "")
+            string playerName = Console.ReadLine();
+            if (playerName == null || playerName == "" || playerName.Length < 2)
                 playerName = "Player";
+            player = new Player(new List<Card>(), "Player");
             Console.WriteLine("Show computer`s hand?(yes/no)");
             string check = Console.ReadLine();
             if (check != null && check != "")
@@ -63,16 +36,16 @@
                 PlayRound();
                 Console.WriteLine("Do you want to play another round? (yes/no)");
                 var response = Console.ReadLine();
-                if (response?.ToLower() != "yes"&& response?.ToLower() != "y")
+                if (response?.ToLower() != "yes" && response?.ToLower() != "y")
                     break;
             }
-            PrintStatistics();
+            statistic.PrintStatistics();
         }
 
         private void PlayRound()
         {
             deck.MixCards();
-            playerCards.Clear();
+            player.playerCards.Clear();
             computerCards.Clear();
 
             Console.WriteLine("Who should draw first? (player/computer)");
@@ -82,8 +55,8 @@
             else
                 playerTurn = false;
 
-            playerCards.Add(deck.DrawCard());
-            playerCards.Add(deck.DrawCard());
+            player.playerCards.Add(deck.DrawCard());
+            player.playerCards.Add(deck.DrawCard());
             computerCards.Add(deck.DrawCard());
             computerCards.Add(deck.DrawCard());
 
@@ -105,7 +78,7 @@
                     contP = MakeMovePlayer();
                     PrintHands();
                 }
-                else if(!contP&&contC)
+                else if (!contP && contC)
                     contC = MakeMoveComp();
                 else if (contP && !contC)
                 {
@@ -114,9 +87,7 @@
                 }
                 else
                 {
-                    if (showComputerhand)
-                        PrintHands();
-                    else
+                    if (!showComputerhand)
                     {
                         showComputerhand = true;
                         PrintHands();
@@ -130,14 +101,14 @@
 
         private bool MakeMovePlayer()
         {
-            int playerPoints = CalculatePoints(playerCards);
-            if (playerPoints == 20 || playerPoints == 21 || (playerCards.Count == 2 && playerCards.All(card => card.Value == CardValue.Ace)) || playerPoints > 21 )
+            int playerPoints = CalculatePoints(player.playerCards);
+            if (playerPoints == 20 || playerPoints == 21 || (player.playerCards.Count == 2 && player.playerCards.All(card => card.Value == CardValue.Ace)) || playerPoints > 21)
                 return false;
-            Console.WriteLine($"{playerName}'s turn. Do you want another card? (yes/no)");
+            Console.WriteLine($"{player.playerName}'s turn. Do you want another card? (yes/no)");
             var response = Console.ReadLine();
             if (response?.ToLower() == "yes" || response?.ToLower() == "y")
             {
-                playerCards.Add(deck.DrawCard());
+                player.playerCards.Add(deck.DrawCard());
                 return true;
             }
             else
@@ -160,11 +131,11 @@
         private void PrintHands()
         {
             Console.WriteLine("\nPlayer's hand:");
-            foreach (var card in playerCards)
+            foreach (var card in player.playerCards)
             {
                 Console.WriteLine(card);
             }
-            Console.WriteLine($"Total points: {CalculatePoints(playerCards)}\n");
+            Console.WriteLine($"Total points: {CalculatePoints(player.playerCards)}\n");
             if (showComputerhand == true)
             {
                 Console.WriteLine("\nComputer's hand:");
@@ -195,73 +166,65 @@
 
         private void DetermineWinner()
         {
-            int playerPoints = CalculatePoints(playerCards);
+            int playerPoints = CalculatePoints(player.playerCards);
             int computerPoints = CalculatePoints(computerCards);
 
             Console.WriteLine($"Player's points: {playerPoints}");
             Console.WriteLine($"Computer's points: {computerPoints}");
 
-            if (playerPoints == 21 || (playerCards.Count == 2 && playerCards.All(card => card.Value == CardValue.Ace)))
+            if (playerPoints == 21 || (player.playerCards.Count == 2 && player.playerCards.All(card => card.Value == CardValue.Ace)))
             {
                 Console.WriteLine("Player wins!");
-                playerWins++;
+                statistic.playerWins++;
             }
             else if (computerPoints == 21 || (computerCards.Count == 2 && computerCards.All(card => card.Value == CardValue.Ace)))
             {
                 Console.WriteLine("Computer wins!");
-                computerWins++;
+                statistic.computerWins++;
             }
             else if (playerPoints > 21 && computerPoints > 21)
             {
                 if (playerPoints < computerPoints)
                 {
                     Console.WriteLine("Player wins!");
-                    playerWins++;
+                    statistic.playerWins++;
                 }
                 else if (playerPoints > computerPoints)
                 {
                     Console.WriteLine("Computer wins!");
-                    computerWins++;
+                    statistic.computerWins++;
                 }
                 else
                 {
                     Console.WriteLine("It's a draw!");
-                    draws++;
+                    statistic.draws++;
                 }
             }
             else if (playerPoints > 21)
             {
                 Console.WriteLine("Computer wins!");
-                computerWins++;
+                statistic.computerWins++;
             }
             else if (computerPoints > 21)
             {
                 Console.WriteLine("Player wins!");
-                playerWins++;
+                statistic.playerWins++;
             }
             else if (playerPoints < computerPoints)
             {
                 Console.WriteLine("Computer wins!");
-                computerWins++;
+                statistic.computerWins++;
             }
             else if (playerPoints > computerPoints)
             {
                 Console.WriteLine("Player wins!");
-                playerWins++;
+                statistic.playerWins++;
             }
             else
             {
                 Console.WriteLine("It's a draw!");
-                draws++;
+                statistic.draws++;
             }
-        }
-
-        private void PrintStatistics()
-        {
-            Console.WriteLine("Game statistics:");
-            Console.WriteLine($"Player wins: {playerWins}");
-            Console.WriteLine($"Computer wins: {computerWins}");
-            Console.WriteLine($"Draws: {draws}");
         }
         public bool ComputerTurn()
         {
@@ -279,7 +242,6 @@
                     return true;
                 else
                     return false;
-
             }
         }
     }
